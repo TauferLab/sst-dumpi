@@ -126,6 +126,7 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
   active_counters_ = 0;
   dumpi_init_perfctr_tags();
   /* Initialize PAPI.  Return 0 if PAPI fails. */
+  printf("THIS IS NEW MODIFIED DUMPI.\n");
   ret = PAPI_library_init(PAPI_VER_CURRENT);
   if(ret != PAPI_VER_CURRENT) {
     PAPI_perror("dumpi_init_perfctrs: Error initializing PAPI");
@@ -137,6 +138,7 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
   /* Allocate storage */
   //maxcount = DUMPI_MIN(PAPI_num_counters(), DUMPI_MAX_PERFCTRS);
   //papi_code_ = (int*)calloc(DUMPI_MAX_PERFCTRS, sizeof(int));
+  maxcount = DUMPI_MAX_PERFCTRS;
   ret = PAPI_create_eventset(&papi_code_);
   if(ret != PAPI_OK){
   	fprintf(stderr, "PAPI eventset failure\n"); 
