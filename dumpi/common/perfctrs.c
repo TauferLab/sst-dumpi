@@ -95,7 +95,7 @@ static inline dumpi_papi_accum_t* get_accumulators(void) {
   if(accum == NULL) {
     /* start the counters */
     if(active_counters_ > 0) {
-      if((ret = PAPI_start_counters(papi_code_, active_counters_)) != PAPI_OK){
+      if((ret = PAPI_start(papi_code_)) != PAPI_OK){
 	fprintf(stderr, "Failed to start PAPI counters: %s\n",
 		PAPI_strerror(ret));
 	return NULL;
@@ -188,7 +188,7 @@ void dumpi_get_perfctrs(const dumpi_profile *profile, dumpi_perfinfo *perf,
     assert((accum = get_accumulators()) != NULL);
     perf->count = active_counters_;
     if(active_counters_) {
-      PAPI_accum_counters(accum, active_counters_);
+      PAPI_accum(papi_code_, accum);
       for(i = 0; i < active_counters_; ++i) {
 	/* THIS NEEDS TO BE FIXED */
 	strncpy(perf->counter_tag[i], papi_label_[i], DUMPI_MAX_PERFCTR_NAME-1);
