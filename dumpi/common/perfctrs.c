@@ -62,7 +62,7 @@ Questions? Contact sst-macro-help@sandia.gov
 typedef long long dumpi_papi_accum_t;
 
 static int active_counters_ = 0;
-static int papi_code_ = NULL;
+static int papi_code_ = PAPI_NULL;
 static dumpi_perflabel_t *papi_label_ = NULL;
 
 #ifdef DUMPI_USE_PTHREADS
@@ -140,8 +140,9 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
   ret = PAPI_create_eventset(&papi_code_);
   if(ret != PAPI_OK){
   	fprintf(stderr, "PAPI eventset failure\n"); 
+}
   papi_label_ = (dumpi_perflabel_t*)calloc(maxcount, sizeof(dumpi_perflabel_t));
-  assert(papi_code_ != NULL && papi_label_ != NULL);
+  assert(papi_code_ != PAPI_NULL && papi_label_ != NULL);
   if(maxcount <= 0) {
     fprintf(stderr, "dumpi_init_perfctrs:  No PAPI counters available\n");
     return 0;
