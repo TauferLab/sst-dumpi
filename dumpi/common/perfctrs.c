@@ -135,8 +135,8 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
     return 0;
   }
   /* Allocate storage */
-  maxcount = DUMPI_MIN(PAPI_num_counters(), DUMPI_MAX_PERFCTRS);
-  papi_code_ = (int*)calloc(maxcount, sizeof(int));
+  //maxcount = DUMPI_MIN(PAPI_num_counters(), DUMPI_MAX_PERFCTRS);
+  papi_code_ = (int*)calloc(DUMPI_MAX_PERFCTRS, sizeof(int));
   papi_label_ = (dumpi_perflabel_t*)calloc(maxcount, sizeof(dumpi_perflabel_t));
   assert(papi_code_ != NULL && papi_label_ != NULL);
   if(maxcount <= 0) {
