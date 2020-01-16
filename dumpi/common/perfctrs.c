@@ -62,7 +62,7 @@ Questions? Contact sst-macro-help@sandia.gov
 typedef long long dumpi_papi_accum_t;
 
 static int active_counters_ = 0;
-static int *papi_code_ = NULL;
+static int papi_code_ = NULL;
 static dumpi_perflabel_t *papi_label_ = NULL;
 
 #ifdef DUMPI_USE_PTHREADS
@@ -136,7 +136,10 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
   }
   /* Allocate storage */
   //maxcount = DUMPI_MIN(PAPI_num_counters(), DUMPI_MAX_PERFCTRS);
-  papi_code_ = (int*)calloc(DUMPI_MAX_PERFCTRS, sizeof(int));
+  //papi_code_ = (int*)calloc(DUMPI_MAX_PERFCTRS, sizeof(int));
+  ret = PAPI_create_eventset(&papi_code_);
+  if(ret != PAPI_OK){
+  	fprintf(stderr, "PAPI eventset failure\n"); 
   papi_label_ = (dumpi_perflabel_t*)calloc(maxcount, sizeof(dumpi_perflabel_t));
   assert(papi_code_ != NULL && papi_label_ != NULL);
   if(maxcount <= 0) {
@@ -155,7 +158,11 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
 		ctrs->counter_tag[i], PAPI_strerror(evtret));
 	continue;
       }
-      papi_code_[active_counters_] = event_code;
+      //papi_code_[active_counters_] = event_code;
+      ret = PAPI_add_event(papi_code_, event_code);
+      if(ret != PAPI_OK){
+	fprintf(stderr, "Event addition failed\n");
+}
       strcpy(papi_label_[active_counters_], ctrs->counter_tag[i]);
       ++active_counters_;
     }
