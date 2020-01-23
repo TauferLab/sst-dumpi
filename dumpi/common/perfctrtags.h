@@ -45,6 +45,8 @@ Questions? Contact sst-macro-help@sandia.gov
 #ifndef DUMPI_COMMON_PERFCTRTAGS_H
 #define DUMPI_COMMON_PERFCTRTAGS_H
 
+#define MLX_XMIT_PACKETS 1073741863	  
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* ! __cplusplus */
@@ -181,7 +183,8 @@ extern "C" {
    DUMPI_PAPI_BGL_TR_FULL, /*UPC cycles (CLOCKx2) tree rcv is full */
    /* Done */
    DUMPI_PAPI_END,          /*This should always be here! */
-   DUMPI_FIRST_USER_PERFCTR /* Native performance counters numbered from here */
+   DUMPI_FIRST_USER_PERFCTR, /* Native performance counters numbered from here */
+   DUMPI_MLX_XMIT_PACKETS	  
   } dumpi_papi_tag;
 
   /** This gets called automatically if needed */
