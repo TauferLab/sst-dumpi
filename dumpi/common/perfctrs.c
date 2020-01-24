@@ -63,6 +63,7 @@ typedef long long dumpi_papi_accum_t;
 
 static int active_counters_ = 0;
 static int papi_code_ = PAPI_NULL;
+static int telliband_code = PAPI_NULL;
 static dumpi_perflabel_t *papi_label_ = NULL;
 
 #ifdef DUMPI_USE_PTHREADS
@@ -100,6 +101,9 @@ static inline dumpi_papi_accum_t* get_accumulators(void) {
 		PAPI_strerror(ret));
 	return NULL;
       }
+      if((ret = PAPI_start(telliband_code)) != PAPI_OK){
+	fprintf(stderr, "TELLIBAND COULDN:T START\n");
+}
       accum = (dumpi_papi_accum_t*)calloc(active_counters_,
 					  sizeof(dumpi_papi_accum_t));
       assert(accum != NULL);
@@ -170,10 +174,25 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
       ++active_counters_;
     }
     else {
-      fprintf(stderr, "PAPI_event_name_to_code failed for event %s -- "
-	      "skipped (error: %s)\n",
-	      ctrs->counter_tag[i], PAPI_strerror(ret));
-    }
+	 if(strncmp("MLX", ctrs->counter_tag[i], 3) != 0){
+	      fprintf(stderr, "PAPI_event_name_to_code failed for event %s -- "
+		      "skipped (error: %s)\n",
+	      	ctrs->counter_tag[i], PAPI_strerror(ret));
+	 	}
+	 else{
+	     fprintf(stderr, "MLX DETECTED\n");
+		}
+             ret = PAPI_create_eventset(&telliband_code);	
+	     if(ret != PAPI_OK){
+                fprintf(stderr, "COULDN'T MAKE TELLIBAND SET\n");
+		}
+	     ret = PAPI_add_named_event(telliband_code, "infiniband:::mlx5_0_1:port_rcv_data");
+             if(ret != PAPI_OK){
+ 		fprintf(stderr, "COULDN'T ADD TO TELLIBAND SET (%s)\n", PAPI_strerror(ret));         
+}
+             strcpy(papi_label_[active_counters_], ctrs->counter_tag[i]);
+             ++active_counters_;
+   	 }
   }
   /* Initialize accumulators for the current thread */
   return (get_accumulators() != NULL);
@@ -192,6 +211,8 @@ void dumpi_get_perfctrs(const dumpi_profile *profile, dumpi_perfinfo *perf,
     perf->count = active_counters_;
     if(active_counters_) {
       PAPI_accum(papi_code_, accum);
+      PAPI_accum(telliband_code, accum+(sizeof(dumpi_papi_accum_t)*2));
+      //fprintf(stderr, "%d, %d, %d\n", accum[0], accum[1], accum[2]);
       for(i = 0; i < active_counters_; ++i) {
 	/* THIS NEEDS TO BE FIXED */
 	strncpy(perf->counter_tag[i], papi_label_[i], DUMPI_MAX_PERFCTR_NAME-1);
