@@ -67,6 +67,9 @@ static int papi_code_ = PAPI_NULL;
 static int telliband_code = PAPI_NULL;
 static dumpi_perflabel_t *papi_label_ = NULL;
 
+static char * rcv_for_papi = "infiniband:::mlx5_0_1:port_rcv_data";
+static char * xmit_for_papi = "infiniband:::mlx5_0_1:port_xmit_data";
+
 #ifdef DUMPI_USE_PTHREADS
 static pthread_key_t *accum_key_ = NULL;
 #else
@@ -190,13 +193,13 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
 				fprintf(stderr, "MLX DETECTED\n");
 
 				if(strncmp("MLX_RCV_DATA", ctrs->counter_tag[i], 11) == 0){
-					ret = PAPI_add_named_event(telliband_code, "infiniband:::mlx5_0_1:port_rcv_data");
+					ret = PAPI_add_named_event(telliband_code, rcv_for_papi);
 					if(ret != PAPI_OK){
 						fprintf(stderr, "COULDN'T ADD TO TELLIBAND SET (%s)\n", PAPI_strerror(ret));         
 					}
 				}
 				else{
-					ret = PAPI_add_named_event(telliband_code, "infiniband:::mlx5_0_1:port_xmit_data");
+					ret = PAPI_add_named_event(telliband_code, xmit_for_papi);
 					if(ret != PAPI_OK){
 						fprintf(stderr, "COULDN'T ADD TO TELLIBAND SET (%s)\n", PAPI_strerror(ret));         
 					}
