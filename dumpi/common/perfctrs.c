@@ -62,6 +62,7 @@
 typedef long long dumpi_papi_accum_t;
 
 static int active_counters_ = 0;
+static int base_counters_ = 0;
 static int papi_code_ = PAPI_NULL;
 static int telliband_code = PAPI_NULL;
 static dumpi_perflabel_t *papi_label_ = NULL;
@@ -127,7 +128,7 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
 	/* Check input arguments checking and set up */
 	assert(ctrs != NULL);
 	count = ctrs->count;
- 	fprintf(stderr, "COUNT OF COUNT %d\n", count);
+	fprintf(stderr, "COUNT OF COUNT %d\n", count);
 	active_counters_ = 0;
 	dumpi_init_perfctr_tags();
 	/* Initialize PAPI.  Return 0 if PAPI fails. */
@@ -147,6 +148,10 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
 	ret = PAPI_create_eventset(&papi_code_);
 	if(ret != PAPI_OK){
 		fprintf(stderr, "PAPI eventset failure\n"); 
+	}
+	ret = PAPI_create_eventset(&telliband_code);	
+	if(ret != PAPI_OK){
+		fprintf(stderr, "COULDN'T MAKE TELLIBAND SET\n");
 	}
 	papi_label_ = (dumpi_perflabel_t*)calloc(maxcount, sizeof(dumpi_perflabel_t));
 	assert(papi_code_ != PAPI_NULL && papi_label_ != NULL);
@@ -173,6 +178,7 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
 			}
 			strcpy(papi_label_[active_counters_], ctrs->counter_tag[i]);
 			++active_counters_;
+			++base_counters_;
 		}
 		else {
 			if(strncmp("MLX", ctrs->counter_tag[i], 3) != 0){
@@ -182,19 +188,23 @@ int dumpi_init_perfctrs(dumpi_perfinfo *ctrs) {
 			}
 			else{
 				fprintf(stderr, "MLX DETECTED\n");
-			
-			ret = PAPI_create_eventset(&telliband_code);	
-			if(ret != PAPI_OK){
-				fprintf(stderr, "COULDN'T MAKE TELLIBAND SET\n");
+
+				if(strncmp("MLX_RCV_DATA", ctrs->counter_tag[i], 11) == 0){
+					ret = PAPI_add_named_event(telliband_code, "infiniband:::mlx5_0_1:port_rcv_data");
+					if(ret != PAPI_OK){
+						fprintf(stderr, "COULDN'T ADD TO TELLIBAND SET (%s)\n", PAPI_strerror(ret));         
+					}
+				}
+				else{
+					ret = PAPI_add_named_event(telliband_code, "infiniband:::mlx5_0_1:port_xmit_data");
+					if(ret != PAPI_OK){
+						fprintf(stderr, "COULDN'T ADD TO TELLIBAND SET (%s)\n", PAPI_strerror(ret));         
+					}
+				}
+				strcpy(papi_label_[active_counters_], ctrs->counter_tag[i]);
+				++active_counters_;
 			}
-			ret = PAPI_add_named_event(telliband_code, "infiniband:::mlx5_0_1:port_rcv_data");
-			if(ret != PAPI_OK){
-				fprintf(stderr, "COULDN'T ADD TO TELLIBAND SET (%s)\n", PAPI_strerror(ret));         
-			}
-			strcpy(papi_label_[active_counters_], ctrs->counter_tag[i]);
-			++active_counters_;
 		}
-}
 	}
 	/* Initialize accumulators for the current thread */
 	return (get_accumulators() != NULL);
@@ -213,7 +223,9 @@ void dumpi_get_perfctrs(const dumpi_profile *profile, dumpi_perfinfo *perf,
 		perf->count = active_counters_;
 		if(active_counters_) {
 			PAPI_accum(papi_code_, accum);
-			PAPI_accum(telliband_code, accum+(2));
+			if(base_counters_ < active_counters_){
+				PAPI_accum(telliband_code, accum+base_counters_);
+			}
 			//fprintf(stderr, "%d, %d, %d\n", accum[0], accum[1], accum[2]);
 			for(i = 0; i < active_counters_; ++i) {
 				/* THIS NEEDS TO BE FIXED */
