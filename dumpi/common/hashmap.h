@@ -151,13 +151,13 @@ extern "C" {
   {                                                                     \
     int buck;                                                           \
     assert(hm != NULL);                                                 \
-    /*fprintf(stderr, "hashmap:  Getting value for %ld\n", (long)key);*/\
+    /*fprintf(stderr, "hashmap:  Getting value for %ld\n", (long)key);*/    \
     buck = DUMPI_J4(dumpi_hash_,LABEL, _, KEY_TYPE)(key);               \
     DUMPI_J2(keyval_,LABEL) **node;					\
     node = &(hm->bucket[buck]);                                         \
     while(*node) {                                                      \
       if((*node)->key == key) {                                         \
-        /*fprintf(stderr, "found with a value %d\n", (int)(*node)->value);*/\
+        /*fprintf(stderr, "found key %ld with a value %d\n",(long)key (int)(*node)->value);*/\
         return (*node)->value;                                          \
       }                                                                 \
       node = &((*node)->next);                                          \
@@ -167,7 +167,7 @@ extern "C" {
       calloc(1, sizeof(DUMPI_J2(keyval_,LABEL)));                       \
     (*node)->key = key;                                                 \
     (*node)->value = hm->next_value++;                                  \
-    /*fprintf(stderr, "new, assigned value %d\n", (int)(*node)->value);*/ \
+    /*fprintf(stderr, "new key %ld, assigned value %d\n", (int)(*node)->value);*/   \
     return (*node)->value;                                              \
   }                                                                     \
                                                                         \

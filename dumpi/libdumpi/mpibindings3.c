@@ -444,7 +444,7 @@ int MPI_Buffer_detach(void *buf, int *size) {
 int MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request) {
   int16_t thread;
   dumpi_time cpu, wall;
-  int retval;
+  int retval, rank;
   dumpi_isend stat;
   memset(&stat, 0, sizeof(dumpi_isend));
   thread = libdumpi_get_thread_id();
@@ -464,6 +464,8 @@ int MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int t
     DUMPI_START_OVERHEAD(DUMPI_Isend);
     DUMPI_STOP_TIME(cpu, wall);
     DUMPI_REQUEST_FROM_MPI_REQUEST(stat.request, *request);
+    PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    fprintf(stderr, "MPI3 Size of MPI_Request: %ld MPI_Request as long: %ld id as int: %d rank: %d Request Addr: %p \n", sizeof(MPI_Request), (long) *request, stat.request, rank, (void *) request);
     libdumpi_lock_io();
     dumpi_write_isend(&stat, thread, &cpu, &wall, dumpi_global->perf, dumpi_global->output, dumpi_global->profile);
     libdumpi_unlock_io();
